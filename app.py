@@ -2,13 +2,12 @@ import streamlit as st
 import pandas as pd
 import fitz  # PyMuPDF
 from openai import OpenAI
-import os
 
-# Load API key directly from secrets
-api_key = st.secrets.get("OPENROUTER_API_KEY")
+# Your API key hardcoded here
+api_key = "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"
 
 if not api_key:
-    st.error("❌ OpenRouter API key not found. Add it to .streamlit/secrets.toml")
+    st.error("❌ OpenRouter API key not found. Please add it.")
     st.stop()
 
 client = OpenAI(
@@ -48,22 +47,21 @@ def reset_state():
         {"role": "system", "content": "You are a helpful assistant that answers questions based on uploaded file content."}
     ]
 
-# === Upload Section ===
-uploaded = st.file_uploader(
-    label="Drag and drop file here\nLimit 200MB per file • TXT, CSV, XLSX, PDF",
-    type=["txt", "csv", "xlsx", "pdf"],
-    label_visibility="visible"
-)
-
-if uploaded:
-    st.session_state.uploaded_file = uploaded
-    st.session_state.file_summarized = False  # Allow re-summary if new file
-    st.session_state.chat_history = [
-        {"role": "system", "content": "You are a helpful assistant that answers questions based on uploaded file content."}
-    ]
-
-# === File Display and Delete ===
-if st.session_state.uploaded_file:
+# === Upload Section with conditional display ===
+if st.session_state.uploaded_file is None:
+    uploaded = st.file_uploader(
+        label="Drag and drop file here\nLimit 200MB per file • TXT, CSV, XLSX, PDF",
+        type=["txt", "csv", "xlsx", "pdf"],
+        label_visibility="visible"
+    )
+    if uploaded:
+        st.session_state.uploaded_file = uploaded
+        st.session_state.file_summarized = False  # Allow re-summary if new file
+        st.session_state.chat_history = [
+            {"role": "system", "content": "You are a helpful assistant that answers questions based on uploaded file content."}
+        ]
+else:
+    # Show uploaded file name and a remove button only
     col1, col2 = st.columns([0.9, 0.1])
     with col1:
         st.success(f"📎 File uploaded: `{st.session_state.uploaded_file.name}`")
